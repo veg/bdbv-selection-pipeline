@@ -85,6 +85,9 @@ python run_galaxy_pipeline.py
 ```
 The script will prompt for your API key if the environment variable is not set. It creates a dataset collection, imports the workflow definition, and executes the 113-job selection analysis suite.
 
+> [!TIP]
+> **Performance Optimization:** Uploading individual FASTA files as separate history items to Galaxy is slow and inefficient. For future enhancements, concatenate all assemblies into a single multi-FASTA file, upload it as a single dataset, and split it later using Galaxy's built-in split tools.
+
 ### 4. Fetch Results and Generate Report
 Once the Galaxy jobs are complete (state: `ok`), download the results and generate a selection report:
 ```bash

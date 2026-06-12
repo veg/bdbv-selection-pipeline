@@ -62,3 +62,9 @@ To prevent interactive CLI prompting (non-interactive runs, cron executions, or 
 
 - **Credential Isolation**: Under no circumstances should the agent write the `GALAXY_API_KEY` to the disk (except inside volatile environment variables) or output it to logs.
 - **Git Safety**: Ensure `.gitignore` is present and active before initializing Git commits.
+
+---
+
+## 5. Optimization & Performance Guidelines
+
+- **Batch Uploading to Galaxy:** Do **NOT** upload individual FASTA files for assemblies as separate history items. This causes massive overhead (90+ upload jobs and UI clutter) and is highly inefficient. Instead, upload a single combined FASTA file containing all curated assemblies, and split it into a dataset collection on Galaxy using a split tool, or adjust the workflow to accept a combined FASTA.
