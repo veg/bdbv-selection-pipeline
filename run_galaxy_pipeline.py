@@ -6,11 +6,20 @@ import getpass
 from bioblend.galaxy import GalaxyInstance
 
 # Configuration
-WORKSPACE = "/Users/sergei/Dropbox/Work/EBOV"
+WORKSPACE = os.path.dirname(os.path.abspath(__file__))
 ASSEMBLIES_DIR = os.path.join(WORKSPACE, "assemblies")
-REF_CDS_FILE = os.path.join(WORKSPACE, "bdbv_ref_cds.fasta")
+REF_CDS_FILE = os.path.join(WORKSPACE, "ref_cds.fasta")
 WF_URL = "https://raw.githubusercontent.com/galaxyproject/iwc/main/workflows/comparative_genomics/hyphy/capheine-core-and-compare.ga"
 CACHE_FILE = os.path.join(WORKSPACE, "galaxy_cache.json")
+CONFIG_FILE = os.path.join(WORKSPACE, "pipeline_config.json")
+
+# Load configuration
+if not os.path.exists(CONFIG_FILE):
+    print(f"Error: Configuration file not found at {CONFIG_FILE}. Please run 'download_data.py' first.")
+    exit(1)
+
+with open(CONFIG_FILE, "r") as f:
+    config = json.load(f)
 
 # Step UUIDs from workflow GA file
 REF_CDS_UUID = "b2b2453a-80ab-4318-ab5f-36a07827a6e8"
@@ -64,7 +73,7 @@ def main():
         return
 
     # 2. Retrieve or Create History
-    history_name = "Bundibugyo CAPHEINE Selection Analysis 2026"
+    history_name = config.get("galaxy_history_name", "Viral CAPHEINE Selection Analysis")
     history_id = cache.get("history_id")
     
     # Verify cached history exists
@@ -320,6 +329,7 @@ def main():
     # 9. Invoke Workflow (Self-correcting candidates loop)
     print("\nConfiguring inputs and invoking the workflow (trying candidate payload structures)...")
     
+    fg_suffix = config.get("foreground_suffix", "_foreground")
     candidates = [
         # Candidate 1: Parameter in inputs as raw string (UUID-based)
         {
@@ -327,7 +337,7 @@ def main():
             "inputs": {
                 REF_CDS_UUID: {"src": "hda", "id": ref_dataset_id},
                 ASSEMBLIES_UUID: {"src": "hdca", "id": collection_id},
-                FOREGROUND_REGEX_UUID: "_foreground"
+                FOREGROUND_REGEX_UUID: fg_suffix
             },
             "params": None,
             "inputs_by": "step_uuid"
@@ -338,7 +348,7 @@ def main():
             "inputs": {
                 "0": {"src": "hda", "id": ref_dataset_id},
                 "1": {"src": "hdca", "id": collection_id},
-                "2": "_foreground"
+                "2": fg_suffix
             },
             "params": None,
             "inputs_by": "step_index"
@@ -349,7 +359,7 @@ def main():
             "inputs": {
                 REF_CDS_UUID: {"src": "hda", "id": ref_dataset_id},
                 ASSEMBLIES_UUID: {"src": "hdca", "id": collection_id},
-                FOREGROUND_REGEX_UUID: {"value": "_foreground"}
+                FOREGROUND_REGEX_UUID: {"value": fg_suffix}
             },
             "params": None,
             "inputs_by": "step_uuid"
@@ -360,7 +370,7 @@ def main():
             "inputs": {
                 "0": {"src": "hda", "id": ref_dataset_id},
                 "1": {"src": "hdca", "id": collection_id},
-                "2": {"value": "_foreground"}
+                "2": {"value": fg_suffix}
             },
             "params": None,
             "inputs_by": "step_index"
@@ -373,7 +383,7 @@ def main():
                 "1": {"src": "hdca", "id": collection_id}
             },
             "params": {
-                "2": "_foreground"
+                "2": fg_suffix
             },
             "inputs_by": "step_index"
         },
@@ -381,11 +391,11 @@ def main():
         {
             "name": "Candidate 6: Parameter in params as raw value (UUID-based)",
             "inputs": {
-                REF_CDS_UUID: {"src": "hda", "id": ref_dataset_id},
-                ASSEMBLIES_UUID: {"src": "hdca", "id": collection_id}
+                "0": {"src": "hda", "id": ref_dataset_id},
+                "1": {"src": "hdca", "id": collection_id}
             },
             "params": {
-                FOREGROUND_REGEX_UUID: "_foreground"
+                FOREGROUND_REGEX_UUID: fg_suffix
             },
             "inputs_by": "step_uuid"
         },

@@ -6,9 +6,18 @@ import re
 from bioblend.galaxy import GalaxyInstance
 
 # Configuration
-WORKSPACE = "/Users/sergei/Dropbox/Work/EBOV"
+WORKSPACE = os.path.dirname(os.path.abspath(__file__))
 RESULTS_DIR = os.path.join(WORKSPACE, "galaxy_results")
-REPORT_FILE = os.path.join(WORKSPACE, "ebov_selection_report.md")
+REPORT_FILE = os.path.join(WORKSPACE, "selection_report.md")
+CONFIG_FILE = os.path.join(WORKSPACE, "pipeline_config.json")
+
+# Load configuration
+if not os.path.exists(CONFIG_FILE):
+    print(f"Error: Configuration file not found at {CONFIG_FILE}. Please run 'download_data.py' first.")
+    exit(1)
+
+with open(CONFIG_FILE, "r") as f:
+    config = json.load(f)
 
 os.makedirs(RESULTS_DIR, exist_ok=True)
 
@@ -33,6 +42,7 @@ def connect_galaxy():
 
 def find_history(gi):
     history_names = [
+        config.get("galaxy_history_name", "Viral CAPHEINE Selection Analysis"),
         "Bundibugyo CAPHEINE 68-Genomes Selection Analysis 2026",
         "Bundibugyo CAPHEINE Selection Analysis 2026"
     ]
@@ -153,7 +163,7 @@ def download_results(gi, history_id):
 def discover_local_files():
     downloaded_files = []
     targets = ["busted", "relax", "meme", "fel", "contrast-fel", "prime"]
-    genes = ["NP", "VP35", "VP40", "GP", "VP30", "VP24", "L"]
+    genes = config.get("target_genes", ["NP", "VP35", "VP40", "GP", "VP30", "VP24", "L"])
     
     if not os.path.exists(RESULTS_DIR):
         return []
@@ -177,7 +187,7 @@ def discover_local_files():
 def parse_results(downloaded_files):
     print("\nProcessing results files...")
     
-    genes = ["NP", "VP35", "VP40", "GP", "VP30", "VP24", "L"]
+    genes = config.get("target_genes", ["NP", "VP35", "VP40", "GP", "VP30", "VP24", "L"])
     summary = {g: {"busted": None, "relax": None, "fel_sites": 0, "meme_sites": 0, "cfel_sites": 0} for g in genes}
     
     for f in downloaded_files:
@@ -264,8 +274,8 @@ def generate_report(summary):
     print(f"\nWriting selection analysis report to: {REPORT_FILE}")
     
     report_md = []
-    report_md.append("# Bundibugyo Ebolavirus Selection Analysis Report")
-    report_md.append("\nThis report summarizes the molecular evolutionary selection pressures detected across the Bundibugyo ebolavirus genome, contrasting the **May 2026 foreground outbreak strains** against **historical background reference lineages** using the CAPHEINE pipeline.\n")
+    report_md.append(f"# {config.get('virus_name', 'Viral')} Selection Analysis Report")
+    report_md.append(f"\nThis report summarizes the molecular evolutionary selection pressures detected across the {config.get('virus_name', 'viral')} genome, contrasting the foreground outbreak strains against historical background reference lineages using the CAPHEINE pipeline.\n")
     
     report_md.append("## 1. Gene-Wide Selection Dynamics (BUSTED & RELAX)")
     report_md.append("| Gene | BUSTED positive selection ($p$-value) | RELAX selection shift | K-parameter | RELAX $p$-value | Significance |")
