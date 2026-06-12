@@ -1,0 +1,18 @@
+# Python caches
+__pycache__/
+*.pyc
+
+# Local data & assemblies (raw downloaded sequences)
+assemblies/
+pathoplexus_cache/
+
+# Local run outputs & results
+galaxy_results/
+galaxy_cache.json
+ebov_selection_report.md
+foreground_list.txt
+bdbv_ref_cds.fasta
+
+# Credentials and keys (safety first)
+.env
+*.key
